@@ -3,18 +3,19 @@ import h5py
 from PIL import Image
 import pandas as pd
 import numpy as np
-
+import pdb
+import torch
 from torch.utils.data import Dataset, DataLoader
-import torchvision.transforms as transforms
+import torchvision.transforms as T
 from torchvision.utils import save_image
 
 
-def get_dataset(opt):
+def get_video_dataset(opt):
 
-    augmentation = transforms.Compose([
-        transforms.Resize((opt.image_size, opt.image_size)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+    augmentation = T.Compose([
+        T.Resize((opt.image_size, opt.image_size)),
+        T.ToTensor(),
+        T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])
 
     # train dataset
@@ -48,13 +49,13 @@ def get_dataset(opt):
 class VideoDataset(Dataset):
     def __init__(self, path, bbox_path, crop_ratio=1.2, mode='train', transforms=None, frame_num=10):
         self.path = path
-        self.bbox_path = bbox_path
-        self.crop_ratio = crop_ratio
+        self.bbox_path = bbox_path ##
+        self.crop_ratio = crop_ratio ##
         self.mode = mode
         self.frame_num = frame_num
         self.mtype = ['Original', 'Deepfakes', 'Face2Face', 'FaceSwap', 'NeuralTextures']
         if transforms is None:
-           self.transforms = transforms.ToTensor()
+           self.transforms = T.ToTensor()
         else:
            self.transforms = transforms
 
@@ -88,29 +89,16 @@ class VideoDataset(Dataset):
                 self.data_list.append(h5py.File(os.path.join(self.path, f'{m}.h5'), 'r', swmr=True))
 
         data_file = self.data_list[self.mtype_index[index]] # Original file
-        clip = data_file[self.videos[index]]
-
-        frame_idx = np.random.randint(0, len(clip))
-        frame = clip[frame_idx]
-        frame = Image.fromarray(frame[...,::-1])    # BGR2RGB
-
-        # TODO : bbox face crop
-        # bbox path
-        if self.mtype_index[index] == 0:
-            bound_path = '{}/original_sequences/raw/result'.format(self.bbox_path)
-        else:
-            bound_path = '{}/manipulated_sequences/{}/raw/result'.format(self.bbox_path, self.mtype[self.mtype_index[index]])
-        annotations_path = os.path.join(bound_path, self.videos[index]+".json")  # json 파일 이름 맞는지 확인
-        bbox_df = pd.read_json(annotations_path)
-        frame_id = '{:04d}'.format(frame_idx)
-        bbox = bbox_df.loc['bbox', int(frame_id)]
-        
-        width, height = frame.size
-        if bbox :
-            bbox = [bbox[0]+bbox[2]*(1-self.crop_ratio)/2, bbox[1]+bbox[3]*(1-self.crop_ratio)/2, bbox[0]+bbox[2]*(1-self.crop_ratio)/2+bbox[2]*self.crop_ratio, bbox[1]+bbox[3]*(1-self.crop_ratio)/2+bbox[3]*self.crop_ratio]
-        else :
-            bbox = [0, 0, width, height]
-        frame_cropped = frame.crop(bbox)
-        frame = self.transforms(frame_cropped)
-        data = {'frame': frame, 'label': self.labels[index]}
+        clip = data_file[self.videos[index]] # 특정 비디오
+        start_frame_idx = np.random.randint(0, len(clip)-self.frame_num)
+        frames = [clip[start_frame_idx + i] for i in range(self.frame_num)]
+        frames = torch.stack([self.transforms(Image.fromarray(frame[...,::-1])) for frame in frames])
+        data = {'frame': frames, 'label': self.labels[index]}  # t x c x (h x w)
         return data
+    
+    
+if __name__ == "__main__":
+    data_path = '/root/result/h5_result'
+    bbox_path = '/root/deepfakedatas'
+    dataset = VideoDataset(data_path, bbox_path, crop_ratio=1.7, mode='train')
+    data = dataset[1500]

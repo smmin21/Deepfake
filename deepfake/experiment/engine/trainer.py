@@ -27,7 +27,7 @@ class Trainer():
         for epoch in range(self.total_epoch):
             self.model.train()
             for data in self.train_loader:
-                print('current step: ', self.steps)
+                # print('current step: ', self.steps)
                 self.steps += 1
                 # run step
                 train_loss = self.run_step(data)
@@ -41,7 +41,7 @@ class Trainer():
                     self.save_model(epoch)
 
             total, correct, val_loss = self.validate()
-            self.logger.info('Epoch: %d/%d, Train loss: %.6f, val loss: %.6f, Accuracy: %.2f' %(epoch+1, self.total_epoch, train_loss.item(), val_loss, 100*correct/total))
+            self.logger.info('Epoch: %d/%d, Train loss: %.6f, val loss: %.6f, Accuracy: %.2f' %(epoch+1, self.total_epoch, train_loss, val_loss, 100*correct/total))
 
     def validate(self):
         total, correct, val_loss = 0, 0, 0
@@ -63,9 +63,9 @@ class Trainer():
         if self.optimizer is not None:
             self.optimizer.zero_grad()
         start_time = time.time()
-        output = self.model(data['frame'].to(self.device))
+        output = self.model(data['frame'].to(self.device)).logits
         end_time = time.time()
-        print(f'forward time: {end_time-start_time}')
+        # print(f'forward time: {end_time-start_time}')
         train_loss = self.loss_function(output, data['label'].to(self.device))
         train_loss.backward()
         if self.optimizer is not None:

@@ -1,7 +1,10 @@
 import os
+import cv2
 import h5py
 from PIL import Image
 import matplotlib.pyplot as plt
+import multiprocessing as mp
+import concurrent.futures
 import pandas as pd
 import numpy as np
 import time
@@ -12,7 +15,7 @@ from torchvision.utils import save_image
 
 
 
-def get_dataset(opt):
+def get_image_dataset(opt):
 
     augmentation = T.Compose([
         T.Resize((opt.image_size, opt.image_size)),
@@ -80,11 +83,6 @@ class ImageDataset(Dataset):
                 self.labels += [0 if path.find('Original') >= 0 else 1 for _ in range(len(video_keys))] # 0: real, 1: fake
                 self.mtype_index += [i for _ in range(len(video_keys))]
         
-        self.bbox_original = pd.read_json(os.path.join(self.bbox_path, 'Original_bbox.json'))
-        self.bbox_deepfakes = pd.read_json(os.path.join(self.bbox_path, 'Deepfakes_bbox.json'))
-        self.bbox_face2face = pd.read_json(os.path.join(self.bbox_path, 'Face2Face_bbox.json'))
-        self.bbox_faceswap = pd.read_json(os.path.join(self.bbox_path, 'FaceSwap_bbox.json'))
-        self.bbox_neuraltextures = pd.read_json(os.path.join(self.bbox_path, 'NeuralTextures_bbox.json'))
 
     def __len__(self):
         return len(self.videos)
@@ -94,41 +92,27 @@ class ImageDataset(Dataset):
             self.data_list = []
             for m in self.mtype:
                 self.data_list.append(h5py.File(os.path.join(self.path, f'{m}.h5'), 'r', swmr=True))
+                
         data_file = self.data_list[self.mtype_index[index]] # Original file
         clip = data_file[self.videos[index]]
+        
         frame_idx = np.random.randint(0, len(clip))
-        frame = clip[frame_idx]
-        frame = Image.fromarray(frame[...,::-1])    # BGR2RGB
-
-        # TODO : bbox face crop
-        # bbox path
-        bbox_dfs = [
-            self.bbox_original,
-            self.bbox_deepfakes,
-            self.bbox_face2face,
-            self.bbox_faceswap,
-            self.bbox_neuraltextures,
-        ]
-        bbox_df = bbox_dfs[self.mtype_index[index]]
-        try:
-            bbox = bbox_df.loc[frame_idx, int(self.videos[index])]["bbox"]
-        except:
-            bbox = bbox_df.loc[frame_idx, str(self.videos[index])]["bbox"]
-        width, height = frame.size
-        if bbox :
-            bbox = [bbox[0]+bbox[2]*(1-self.crop_ratio)/2, bbox[1]+bbox[3]*(1-self.crop_ratio)/2, bbox[0]+bbox[2]*(1-self.crop_ratio)/2+bbox[2]*self.crop_ratio, bbox[1]+bbox[3]*(1-self.crop_ratio)/2+bbox[3]*self.crop_ratio]
-        else :
-            bbox = [0, 0, width, height]          
-        frame_cropped = frame.crop(bbox)  
-        
-        # frame_cropped.save(f'/workspace/result/cropped_img/{frame_idx}.jpg', format='JPEG')
-        
-        frame = self.transforms(frame_cropped)
+        frame = clip[frame_idx]  # 256x256x3  # H X W x C
+        frame = Image.fromarray(frame[...,::-1])    # BGR2RGB  # W x H
+        frame = self.transforms(frame)
         data = {'frame': frame, 'label': self.labels[index]}
         return data
     
 if __name__ == "__main__":
-    data_path = '/workspace/datasets'
-    bbox_path = '/workspace/deepfakedatas'
-    dataset = ImageDataset(data_path, bbox_path, crop_ratio=1, mode='train')
-    data = dataset[2000]
+    data_path = '/root/result/h5_result'
+    bbox_path = '/root/deepfakedatas'
+    dataset = ImageDataset(data_path, bbox_path, crop_ratio=1.7, mode='train')
+    
+    num_frames = len(dataset)
+    frame_idx = np.random.choice(num_frames, size=100, replace=False)
+    for idx in frame_idx:
+        data = dataset[idx]
+        frame = data['frame']
+        save_image(frame, f'/root/result/random_result/{idx}.png')
+   
+    
