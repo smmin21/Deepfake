@@ -8,33 +8,43 @@ import pandas as pd
 
 
 def extract_frames_ff(video_path, group, dtype, crop_ratio):
+    # save_path = f'/root/result/h5_test/ff/{dtype}'
+    save_path = f'{video_path}/../crop_jpg' ##########
+    os.makedirs(save_path, exist_ok=True)
+    
     bbox_df = pd.read_json(f'/root/deepfakedatas/{dtype}_bbox.json')
     video_list = sorted(os.listdir(video_path))
     print(video_path)
     print('num_videos: ', len(video_list))
     for j, video in enumerate(video_list):
         frame_list = sorted(os.listdir(os.path.join(video_path, video))) # frame_list: 0001.png, 0002.png, ...
-        try:
-            bbox = bbox_df.loc[0, int(f'{video}')]["bbox"] 
-        except:
-            bbox = bbox_df.loc[0, f'{video}']["bbox"]
-        try:
-            bbox = [bbox[0]+bbox[2]/2-bbox[3]*crop_ratio/2, 
-                    bbox[1]+bbox[3]*(1-crop_ratio)/2, 
-                    bbox[0]+bbox[2]/2+bbox[3]*crop_ratio/2, 
-                    bbox[1]+bbox[3]*(1+crop_ratio)/2]
-        except:
-            print(bbox)
-            bbox = []
+        
         data = []
         for i, frame_id in enumerate(frame_list):
-            frame_path = os.path.join(video_path, video, frame_id)
+            frame_path = os.path.join(video_path, video, frame_id)                
             frame = cv2.imread(frame_path)
             frame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            print(i, f'{video}', frame_id.split('.png')[0][-4:])
-            width, height = frame.size
-            if not bbox:
-                bbox = [0, 0, width, height] 
+            # print(i, f'{video}', frame_id.split('.png')[0][-4:])
+            
+            # find bbox
+            frame_id = frame_id.split('.png')[0][-4:] # 000_0001.png -> 0001
+            try:
+                bbox = bbox_df.loc[int(f'{frame_id}'), int(f'{video}')]["bbox"] 
+            except:
+                try:
+                    bbox = bbox_df.loc[f'{frame_id}', f'{video}']["bbox"]
+                except:
+                    print(f"find error : video-{video}, frame-{frame_id}")
+                    bbox = prev_bbox
+            try:
+                bbox = [bbox[0]+bbox[2]/2-bbox[3]*crop_ratio/2, 
+                        bbox[1]+bbox[3]*(1-crop_ratio)/2, 
+                        bbox[0]+bbox[2]/2+bbox[3]*crop_ratio/2, 
+                        bbox[1]+bbox[3]*(1+crop_ratio)/2]
+            except:
+                print(f"full size bbox : video-{video}, frame-{frame_id}")
+                bbox = prev_bbox
+            prev_bbox = bbox
             frame = frame.crop(bbox)
             frame = cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2BGR)
             
@@ -43,14 +53,22 @@ def extract_frames_ff(video_path, group, dtype, crop_ratio):
             except:
                 print(bbox)
                 print(frame)
-            if int(frame_id.split('.png')[0][-4:]) % 100 == 0:
-                cv2.imwrite(f'/root/result/h5_test/{dtype}/{frame_id}', frame)
+            # if int(frame_id) % 100 == 0:
+            #     cv2.imwrite(os.path.join(save_path, f'{video}_{frame_id}.png'), frame)
+            tmp_save_path = os.path.join(save_path, video)
+            os.makedirs(tmp_save_path, exist_ok=True)
+            cv2.imwrite(os.path.join(tmp_save_path, f'{frame_id}.jpg'), frame)
+            #################################################################
             data.append(frame)     
         data = np.stack(data, axis=0)
-        group.create_dataset(f'{video}', data=data, dtype=np.uint8)
-        
+        # group.create_dataset(f'{video}', data=data, dtype=np.uint8)
+                
 def extract_frames_celeb(video_path, group, dtype, crop_ratio):
-    bbox_path = f'/root/celebdatas/preprocess/{args.dtype}/bbox'
+    # save_path = f'/root/result/h5_test/celeb/{dtype}'
+    save_path = f'/root/celebdatas/preprocess/{dtype}/crop_jpg' #######
+    os.makedirs(save_path, exist_ok=True)
+    
+    bbox_path = f'/root/celebdatas/preprocess/{dtype}/bbox'
     video_list = sorted(os.listdir(video_path)) # video_list: id0_0000, id0_0001, ...
     print(video_path)
     print('num_videos: ', len(video_list))
@@ -86,11 +104,15 @@ def extract_frames_celeb(video_path, group, dtype, crop_ratio):
             except:
                 print(bbox)
                 print(frame)
-            if int(frame_id[-4:]) % 100 == 0:
-                cv2.imwrite(f'/root/result/h5_test/{dtype}/{video}_{frame_id}.png', frame)
+            # if int(frame_id[-4:]) % 100 == 0:
+            #     cv2.imwrite(os.path.join(save_path, f'{video}_{frame_id}.png'), frame)
+            tmp_save_path = os.path.join(save_path, video)
+            os.makedirs(tmp_save_path, exist_ok=True)
+            cv2.imwrite(os.path.join(tmp_save_path, f'{frame_id}.jpg'), frame)
+            #######################################################################
             data.append(frame)     
         data = np.stack(data, axis=0)
-        group.create_dataset(f'{video}', data=data, dtype=np.uint8)
+        # group.create_dataset(f'{video}', data=data, dtype=np.uint8)
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

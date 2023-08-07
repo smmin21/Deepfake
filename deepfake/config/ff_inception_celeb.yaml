@@ -1,15 +1,15 @@
-EXP_NAME: ff_inception
+EXP_NAME: ff_inception_celeb
 
 DATA:
   name: ff
   data_path: /root/datasets/ff
   bbox_path: /root/deepfakedatas
-  test_data_path: None
+  test_data_path: /root/datasets/celeb
   is_image: True
   image_size: 299
   batch_size: 32
   crop_ratio: 1
-  num_workers: 4
+  num_workers: 1
   frame_num: 100
 
 MODEL:
@@ -26,7 +26,7 @@ TRAIN:
   lr_gamma: 0.1
   log_interval: 10
   save_interval: 10000
-  ckpt_dir: /root/result/ff_inception/epoch_400_jpg_change_val
-  load_ckpt_dir: None
+  ckpt_dir: /root/result/ff_inception/epoch_400_from_ff_to_celeb
+  load_ckpt_dir: /root/result/ff_inception/epoch_400_jpg_dataset/step50000_ep400.pt
 
 

@@ -2,8 +2,10 @@ import h5py
 import numpy as np
 
 if __name__ == '__main__':
-    f = h5py.File('/root/code/deepfake/experiment/preprocess/YouTube-real.h5', 'r')
+    f = h5py.File('/root/code/deepfake/experiment/preprocess/Celeb-synthesis.h5', 'r')
     # f = h5py.File('/root/workspace/deepfake/faceforensics/dataset/image/Deepfakes.h5', 'r')
+    # f = h5py.File('/root/result/h5_result/ff/Deepfakes.h5', 'r')
+
     print(f.keys())
     print("num of videos: ", len(f.keys()))
     
@@ -12,7 +14,6 @@ if __name__ == '__main__':
     #     print(key, f[key]) # frame_num x 256 x 256 x 3
         
         
-    # f = h5py.File('/workspace/deepfake/face_forensics.h5', 'r')
     # print(f.keys())
     # print(f['Original'].keys())
     # videos = list(f.keys())

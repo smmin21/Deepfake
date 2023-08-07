@@ -1,8 +1,8 @@
-EXP_NAME: ff_inception
+EXP_NAME: celeb_inception
 
 DATA:
-  name: ff
-  data_path: /root/datasets/ff
+  name: celeb
+  data_path: /root/datasets/celeb
   bbox_path: /root/deepfakedatas
   test_data_path: None
   is_image: True
@@ -26,7 +26,7 @@ TRAIN:
   lr_gamma: 0.1
   log_interval: 10
   save_interval: 10000
-  ckpt_dir: /root/result/ff_inception/epoch_400_jpg_change_val
+  ckpt_dir: /root/result/celeb_inception/epoch_400_correct_test_set
   load_ckpt_dir: None
 
 

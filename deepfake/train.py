@@ -53,4 +53,3 @@ if __name__ == '__main__':
     tester.test("train")
     tester.test("val")
     
-    
