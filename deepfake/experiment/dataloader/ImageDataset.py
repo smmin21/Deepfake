@@ -131,9 +131,9 @@ class ImageDataset(Dataset):
                 else:
                     if self.mode == 'train':
                         video_keys = video_keys[:int(len(video_keys)*0.8)]
-                    elif self.mode == 'test':
-                        video_keys = video_keys[int(len(video_keys)*0.8):int(len(video_keys)*0.9)]
                     elif self.mode == 'val':
+                        video_keys = video_keys[int(len(video_keys)*0.8):int(len(video_keys)*0.9)]
+                    elif self.mode == 'test':
                         video_keys = video_keys[int(len(video_keys)*0.9):]
             
             video_dirs = [os.path.join(each_path, video_key) for video_key in video_keys]
