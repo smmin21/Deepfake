@@ -11,6 +11,7 @@ from experiment.engine.trainer import Trainer
 from experiment.dataloader.ImageDataset import get_image_dataset
 from experiment.dataloader.VideoDataset import get_video_dataset
 from experiment.model.model import InceptionNet
+from torchsummary import summary
 
 parser = ArgumentParser('Deepface Training Script')
 parser.add_argument('config', type=str, help='config file path')
@@ -30,6 +31,7 @@ if __name__ == '__main__':
     model = models.inception_v3(pretrained=True)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 2)
+    summary(model, (3, opt.DATA.image_size, opt.DATA.image_size), device='cpu')
 
     # Logger
     # log train/val loss, acc, etc.

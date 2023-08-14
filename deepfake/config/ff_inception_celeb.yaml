@@ -1,9 +1,9 @@
 EXP_NAME: ff_inception_celeb
 
 DATA:
-  name: ff
-  data_path: /root/datasets/ff
-  bbox_path: /root/deepfakedatas
+  train_data_name: ff
+  train_data_path: /root/datasets/ff
+  test_data_name: celeb
   test_data_path: /root/datasets/celeb
   is_image: True
   image_size: 299
