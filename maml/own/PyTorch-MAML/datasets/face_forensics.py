@@ -6,7 +6,7 @@ import random
 import numpy as np
 import torch
 
-from .datasets import register
+from .datasets import register, load_video_frames
 from .transforms import get_transform
 
 @register('face-forensics')
@@ -129,6 +129,21 @@ class MetaFaceForensics(FaceForensics):
         query_labels = cls.repeat(1, self.n_query).flatten()  # [n_way * n_query]
         
         return shot, query, shot_labels, query_labels
+    
+@register('face-forensics-video')
+class FaceForensicsVideo(FaceForensics):
+    def __init__(self, root_path, split='train', image_size=84,
+                 normalization=True, transform=None):
+        super(FaceForensicsVideo, self).__init__(root_path, split, image_size,
+                                           normalization, transform)
+    
+    def __getitem__(self, index):
+        video_dir = self.videos[index]
+        frames = load_video_frames(video_dir, self.transform)
+        frames = torch.stack(frames)
+        data = {'frame': frames, 'label': self.labels[index]}
+        return data
+    
     
     
     

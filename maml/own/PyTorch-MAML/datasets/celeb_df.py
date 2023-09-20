@@ -8,7 +8,7 @@ import torch
 
 import pdb
 
-from .datasets import register
+from .datasets import register, load_video_frames
 from .transforms import get_transform
 
 
@@ -76,6 +76,7 @@ class CelebDF(Dataset):
         frame = self.transform(frame)
         data = {'frame': frame, 'label': self.labels[index]}
         return data
+    
 
 @register('meta-celeb-df')
 class MetaCelebDF(CelebDF):
@@ -136,6 +137,22 @@ class MetaCelebDF(CelebDF):
         
         return shot, query, shot_labels, query_labels
     
+@register('celeb-df-video')
+class CelebDFVideo(CelebDF):
+    def __init__(self, root_path, split='train', image_size=84,
+                 normalization=True, transform=None):
+        super(CelebDFVideo, self).__init__(root_path, split, image_size,
+                                           normalization, transform)
+    
+    def __getitem__(self, index):
+        video_dir = self.videos[index]
+        frames = load_video_frames(video_dir, self.transform)
+        frames = torch.stack(frames)
+        data = {'frame': frames, 'label': self.labels[index]}
+        return data
+    
+
+
     
     
         

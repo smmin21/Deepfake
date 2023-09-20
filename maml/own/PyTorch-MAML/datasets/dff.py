@@ -8,7 +8,7 @@ import torch
 
 import pdb
 
-from .datasets import register
+from .datasets import register, load_video_frames
 from .transforms import get_transform
 
 
@@ -138,6 +138,21 @@ class MetaDff(Dff):
         query_labels = cls.repeat(1, self.n_query).flatten()  # [n_way * n_query]
         
         return shot, query, shot_labels, query_labels
+    
+    
+@register('dff-video')
+class DffVideo(Dff):
+    def __init__(self, root_path, split='train', image_size=84, 
+                 normalization=True, transform=None):
+        super(DffVideo, self).__init__(root_path, split, image_size, 
+                                       normalization, transform)
+        
+    def __getitem__(self, index):
+        video_dir = self.videos[index]
+        frames = load_video_frames(video_dir, self.transform)
+        frames = torch.stack(frames)
+        data = {'frame': frames, 'label': self.labels[index]}
+        return data
     
     
     

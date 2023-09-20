@@ -1,6 +1,8 @@
 import os
 
 import torch
+from PIL import Image
+
 
 
 DEFAULT_ROOT = './materials'
@@ -43,3 +45,13 @@ def collate_fn(batch):
   query_label = torch.stack(query_label)  # [n_ep, n_way * n_query]
   
   return shot, query, shot_label, query_label
+
+
+def load_video_frames(video_dir, transform):
+    frame_keys = sorted(os.listdir(video_dir))
+    frames = []
+    for frame_key in frame_keys:
+        frame = Image.open(os.path.join(video_dir, frame_key))
+        frame = transform(frame)
+        frames.append(frame)
+    return frames
