@@ -10,7 +10,7 @@ DATA:
   batch_size: 32
   crop_ratio: 1
   num_workers: 4
-  frame_num: 100
+  frame_num: 96
 
 MODEL:
   name: inception_v3
@@ -26,7 +26,10 @@ TRAIN:
   lr_gamma: 0.1
   log_interval: 10
   save_interval: 10000
-  ckpt_dir: /root/result/vfhq_inception/epoch_400
-  load_ckpt_dir: /root/result/vfhq_inception/epoch_400/step14400_ep400.pt
+  ckpt_dir: /root/result/vfhq_inception_ff/epoch_400
+  load_ckpt_dir: None
 
+
+TEST:
+  is_image: True
 

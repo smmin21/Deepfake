@@ -1,0 +1,34 @@
+EXP_NAME: ff_dann_test_dfdc
+
+DATA:
+  train_data_name: ff
+  train_data_path: /root/datasets/ff
+  test_data_name: dfdc
+  test_data_path: /root/volume3/dfdc_preprocessed
+  is_image: True
+  image_size: 299
+  batch_size: 32
+  crop_ratio: 1
+  num_workers: 4
+  frame_num: 96
+
+MODEL:
+  name: dann
+  pretrained: False
+  num_classes: 2
+
+TRAIN:
+  epochs: 400
+  lr: 0.001
+  momentum: 0.9
+  weight_decay: 0.0001
+  lr_step_size: 7
+  lr_gamma: 0.1
+  log_interval: 10
+  save_interval: 10000
+  ckpt_dir: /root/result/ff_dann/epoch_400
+  load_ckpt_dir: /root/result/ff_dann_fix_seed_deprecated/epoch_400/step50000_ep400.pt
+TEST:
+  is_image: True
+
+

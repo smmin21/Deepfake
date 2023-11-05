@@ -1,0 +1,35 @@
+EXP_NAME: celeb_inception_celeb_video
+
+DATA:
+  train_data_name: celeb
+  train_data_path: /root/datasets/celeb
+  test_data_name: celeb
+  test_data_path: /root/datasets/celeb
+  is_image: True
+  image_size: 299
+  batch_size: 32
+  crop_ratio: 1
+  num_workers: 4
+  frame_num: 96
+
+MODEL:
+  name: inception_v3
+  pretrained: True
+  num_classes: 2
+
+TRAIN:
+  epochs: 400
+  lr: 0.001
+  momentum: 0.9
+  weight_decay: 0.0001
+  lr_step_size: 7
+  lr_gamma: 0.1
+  log_interval: 10
+  save_interval: 10000
+  ckpt_dir: /root/result/celeb_inception_celeb_video/epoch_400
+  load_ckpt_dir: /root/result/celeb_inception_celeb_video/epoch_400/step11200_ep400.pt
+
+TEST:
+  is_image: False
+
+

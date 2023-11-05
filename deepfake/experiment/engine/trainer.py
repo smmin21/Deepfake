@@ -92,7 +92,10 @@ class Trainer():
         torch.save(self.model.state_dict(), osp.join(self.ckpt_dir, f'step{steps}_ep{epoch+1}.pt'))
 
     def save_train_loss_graph(self, train_loss_list):   
-        epochs = [i+1 for i in range(self.total_epoch)]     
+        epochs = [i+1 for i in range(self.total_epoch)]   
+        if not isinstance(train_loss_list, list):
+            train_loss_list = [train_loss_list]
+        train_loss_list = [loss.cpu().detach().numpy() for loss in train_loss_list]
         plt.plot(epochs, train_loss_list, label='Train Loss')
         plt.xlabel('epoch')
         plt.ylabel('train loss')
